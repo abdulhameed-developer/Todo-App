@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Todo App</title>
+    <style>
+      :root {
+        --background: #000430;
+        --secondaryBackground: #171c48;
+        --text: #fff;
+        --purple: #828dff;
+        --teal: #24feee;
+        --dark-purple: #5a63c5;
+        --light-purple: #a5adff;
+        --gray: #8c94c7;
+        --shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+      * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+      body {
+        background-color: var(--background);
+        color: var(--text);
+        min-height: 100vh;
+        display: flex;
+        padding: 50px;
+        align-items: start;
+        justify-content: center;
+        background-image: radial-gradient(
+            circle at 10% 20%,
+            rgba(130, 141, 255, 0.1) 0%,
+            transparent 20%
+          ),
+          radial-gradient(
+            circle at 90% 80%,
+            rgba(36, 254, 238, 0.1) 0%,
+            transparent 20%
+          );
+      }
+      .container {
+        width: 100%;
+        margin: 0 auto;
+        max-width: 500px;
+        animation: fadeIn 0.5s ease-out;
+      }
+
+      .stats-container {
+        width: 100%;
+        border-radius: 20px;
+        background: var(--secondaryBackground);
+        border: 2px solid var(--purple);
+        box-shadow: var(--shadow);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 30px;
+        margin-bottom: 30px;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .stats-container:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      }
+      .details {
+        padding: 0 0 0 30px;
+        flex: 1;
+      }
+      .details h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 5px;
+      }
+
+      .details p {
+        color: var(--gray);
+        font-size: 0.9rem;
+      }
+      #progressBar {
+        width: 100%;
+        height: 8px;
+        background-color: var(--background);
+        border-radius: 10px;
+        margin-top: 15px;
+        overflow: hidden;
+      }
+      #progress {
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(90deg, var(--purple), var(--teal));
+        border-radius: 10px;
+        transition: width 0.5s ease-out;
+        position: relative;
+      }
+      #progress::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.4),
+          transparent
+        );
+        animation: shimmer 2s infinite;
+      }
+      .stats-numbers {
+        height: 150px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(135deg, var(--purple), var(--dark-purple));
+      }
+      #number {
+        width: 100px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-size: 2rem;
+        font-weight: bold;
+        transition: var(--transition);
+      }
+      #number:hover {
+        transform: scale(1.05);
+      }
+      .form-container {
+        margin-bottom: 30px;
+        position: relative;
+      }
+      form {
+        width: 100%;
+        display: flex;
+        gap: 12px;
+        position: relative;
+      }
+      input {
+        flex: 1;
+        padding: 18px 20px;
+        background-color: rgba(23, 28, 72, 0.7);
+        border: 1px solid rgba(130, 141, 255, 0.3);
+        border-radius: 12px;
+        outline: none;
+        color: var(--text);
+        font-size: 16px;
+        transition: var(--transition);
+        backdrop-filter: blur(10px);
+      }
+
+      button {
+        padding: 18px 20px;
+        /* width: 50px;
+        height: 50px; */
+        border-radius: 12px;
+        border: 1px solid var(--purple);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: var(--purple);
+        color: var(--text);
+        font-size: 16px;
+        font-weight: bold;
+        outline: none;
+        cursor: pointer;
+      }
+      .tasks-header {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 15px 0px;
+        padding: 0 5px;
+      }
+
+      .tasks-header h3 {
+        font-size: 1rem;
+        font-weight: 600;
+      }
+
+      .tasks-count {
+        padding: 12px 14px;
+        border-radius: 12px;
+        font-size: 1rem;
+        color: var(--light-purple);
+      }
+      #task-list {
+        background-image: url("./img/checklist.png");
+        background-size: contain; /* cover works better for large bg */
+        background-position: center;
+        background-repeat: no-repeat;
+        display: flex;
+        flex-direction: column;
+        min-height: 200px;
+        gap: 10px;
+        width: 100%;
+        list-style: none;
+        position: relative;
+        overflow: hidden;
+      }
+      .taskItem {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        /* frosted glass effect */
+        background: rgba(255, 255, 255, 0.1); /* slight transparency */
+        backdrop-filter: blur(3px); /* blur the background behind */
+        -webkit-backdrop-filter: blur(3px); /* Safari support */
+
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        padding: 10px;
+        color: #fff;
+      }
+      .task {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+      }
+      .task input {
+        width: 20px;
+        height: 20px;
+      }
+      .completed p {
+        text-decoration: line-through;
+        color: var(--teal);
+      }
+      .taskItem img {
+        width: 24px;
+        height: 24px;
+        margin: 0 10px;
+        cursor: pointer;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateX(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      @keyframes shimmer {
+        0% {
+          transform: translateX(-100%);
+        }
+        100% {
+          transform: translateX(100%);
+        }
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 600px) {
+        body{
+          padding: 20px
+        }
+        .container {
+          margin: 20px auto;
+        }
+
+        .stats-container {
+          gap: 20px;
+          text-align: center;
+        }
+
+        .stats-numbers {
+        height: 120px;
+      }
+
+        .details {
+          width: 100%;
+          padding: 0 0 0 15px;
+        }
+
+        .details h1{
+          font-size: 1.6rem;
+        } 
+
+        
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="stats-container">
+        <div class="details">
+          <h1>Productivity Pro</h1>
+          <p>Organize your tasks efficiently</p>
+          <div id="progressBar">
+            <div id="progress"></div>
+          </div>
+        </div>
+        <div class="stats-numbers">
+          <p id="number">0 / 0</p>
+        </div>
+      </div>
+      <form action="">
+        <input
+          type="text"
+          placeholder="Write your Task"
+          name=""
+          id="taskInput"
+        />
+        <button id="newTask" type="submit">Add</button>
+      </form>
+      <div class="tasks-header">
+        <h3>Your Tasks</h3>
+        <div class="tasks-count" id="tasksCount">0 tasks</div>
+      </div>
+      <ul id="task-list">
+        <!-- DOM  Handled Content -->
+      </ul>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const storedTask = JSON.parse(localStorage.getItem("tasks"));
+        if (storedTask) {
+          storedTask.forEach((task) => tasks.push(task));
+          updateTaskList();
+          updateStats();
+        }
+      });
+      let tasks = [];
+
+      let newTask = document.getElementById("newTask");
+      let taskInput = document.getElementById("taskInput");
+
+      const saveTask = () => {
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+      };
+
+      const addTask = () => {
+        taskInputValue = taskInput.value.trim();
+        if (taskInputValue) {
+          tasks.push({ taskInputValue: taskInputValue, completed: false });
+          updateTaskList();
+          updateStats();
+          saveTask();
+        }
+        // console.log(tasks);
+      };
+
+      const toggleTaskComplete = (index) => {
+        tasks[index].completed = !tasks[index].completed;
+        // console.log({tasks});
+        updateTaskList();
+        updateStats();
+        saveTask();
+      };
+
+      const deleteTask = (index) => {
+        tasks.splice(index, 1);
+        updateTaskList();
+        updateStats();
+        saveTask();
+      };
+
+      const editTask = (index) => {
+        const taskInput = document.getElementById("taskInput");
+        taskInput.value = tasks[index].taskInputValue;
+
+        tasks.splice(index, 1);
+        updateTaskList();
+        updateStats();
+        saveTask();
+      };
+
+      const updateStats = () => {
+        const completeTasks = tasks.filter((task) => task.completed).length;
+        const totalTask = tasks.length;
+        const progress = (completeTasks / totalTask) * 100;
+        const progressBar = document.getElementById("progress");
+        progressBar.style.width = `${progress}%`;
+
+        document.getElementById(
+          "number"
+        ).innerHTML = `${completeTasks} / ${totalTask}`;
+
+        // Update tasks count
+        document.getElementById("tasksCount").textContent =
+          totalTask === 1 ? "1 task" : `${totalTask} tasks`;
+
+        if (tasks.length && completeTasks === totalTask) {
+          blaskConfetti();
+        }
+      };
+
+      const updateTaskList = () => {
+        const taskList = document.getElementById("task-list");
+        taskList.innerHTML = "";
+
+        tasks.forEach((task, index) => {
+          const listItem = document.createElement("li");
+          listItem.innerHTML = `
+        <div class="taskItem">
+            <div class="task ${task.completed ? "completed" : ""}">
+                <input type="checkbox" class="checkbox" ${
+                  task.completed ? "checked" : ""
+                }/>
+                <p>${task.taskInputValue}</p>
+            </div>
+            <div class="icons">
+                <img src="./img/edit.png" onClick="editTask(${index})" />
+                <img src="./img/bin.png" onClick="deleteTask(${index})"/>
+            </div>
+        </div>
+        `;
+          listItem.addEventListener("change", () => {
+            toggleTaskComplete(index);
+          });
+          taskList.append(listItem);
+        });
+      };
+
+      newTask.addEventListener("click", (e) => {
+        e.preventDefault();
+        addTask();
+        taskInput.value = "";
+      });
+
+      const blaskConfetti = () => {
+        const count = 200,
+          defaults = {
+            origin: { y: 0.7 },
+          };
+
+        function fire(particleRatio, opts) {
+          confetti(
+            Object.assign({}, defaults, opts, {
+              particleCount: Math.floor(count * particleRatio),
+            })
+          );
+        }
+
+        fire(0.25, {
+          spread: 26,
+          startVelocity: 55,
+        });
+
+        fire(0.2, {
+          spread: 60,
+        });
+
+        fire(0.35, {
+          spread: 100,
+          decay: 0.91,
+          scalar: 0.8,
+        });
+
+        fire(0.1, {
+          spread: 120,
+          startVelocity: 25,
+          decay: 0.92,
+          scalar: 1.2,
+        });
+
+        fire(0.1, {
+          spread: 120,
+          startVelocity: 45,
+        });
+      };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@tsparticles/confetti@3.0.3/tsparticles.confetti.bundle.min.js"></script>
+  </body>
+</html>
